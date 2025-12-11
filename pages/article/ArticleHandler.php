@@ -45,7 +45,6 @@ use PKP\submission\Genre;
 use PKP\submission\GenreDAO;
 use PKP\submission\PKPSubmission;
 use PKP\submissionFile\SubmissionFile;
-use PKP\userGroup\UserGroup;
 use stdClass;
 
 class ArticleHandler extends Handler
@@ -242,6 +241,14 @@ class ArticleHandler extends Handler
             'submissionFileId' => $this->submissionFileId,
             'enablePublicComments' => $enablePublicComments,
         ]);
+
+        $arePeersReviewPublic = $context->arePeersReviewPublic();
+        if ($arePeersReviewPublic) {
+            $templateMgr->assign(
+                'publicationsPeerReviews',
+                Repo::publication()->getPeerReviews($article->getPublishedPublications()),
+            );
+        }
         $this->setupTemplate($request);
 
         $doiObject = $publication->getData('doiObject');
@@ -316,9 +323,6 @@ class ArticleHandler extends Handler
         $templateMgr->assign([
             'primaryGalleys' => $primaryGalleys,
             'supplementaryGalleys' => $supplementaryGalleys,
-            'userGroupsById' => UserGroup::withPublicationIds([$this->publication->getId()])
-                ->get()
-                ->all()
         ]);
 
         // Citations

@@ -116,6 +116,13 @@ class TemplateManager extends PKPTemplateManager
     {
         parent::setupBackendPage();
 
+        $this->setConstants([
+            'publication' => [
+                'STATUS_READY_TO_PUBLISH' => Publication::STATUS_READY_TO_PUBLISH,
+                'STATUS_READY_TO_SCHEDULE' => Publication::STATUS_READY_TO_SCHEDULE,
+            ],
+        ]);
+
         $request = Application::get()->getRequest();
         if (PKPSessionGuard::isSessionDisable() ||
             !$request->getContext() ||
@@ -131,31 +138,38 @@ class TemplateManager extends PKPTemplateManager
 
         $menu = (array) $this->getState('menu');
 
-        // Add issues after submissions items
+        // Add content before statistics menu
         if (count(array_intersect([Role::ROLE_ID_MANAGER, Role::ROLE_ID_SITE_ADMIN], $userRoles))) {
-            $issuesLink = [
+            $contentSubmenu = [];
+
+            if ($request->getContext()->getData('enablePublicComments')) {
+                $contentSubmenu['userComments'] = [
+                    'name' => __('manager.userComment.comments'),
+                    'url' => $router->url($request, null, 'management', 'settings', ['userComments']),
+                    'isCurrent' => $router->getRequestedPage($request) === 'management' && in_array('userComments', (array) $router->getRequestedArgs($request)),
+                ];
+            }
+
+            $contentSubmenu['issues'] = [
                 'name' => __('editor.navigation.issues'),
                 'url' => $router->url($request, null, 'manageIssues'),
                 'isCurrent' => $request->getRequestedPage() === 'manageIssues',
-                'icon' => 'Issues'
             ];
-            $index = false;
-            $reviewAssignmentsIndex = array_search('reviewAssignments', array_keys($menu));
-            $mySubmissionsIndex = array_search('mySubmissions', array_keys($menu));
-            if ($mySubmissionsIndex !== false) {
-                $index = $mySubmissionsIndex;
-            } elseif ($reviewAssignmentsIndex !== false) {
-                $index = $reviewAssignmentsIndex;
-            } else {
-                $index = array_search('dashboards', array_keys($menu));
-            }
 
-            if ($index === false || count($menu) <= $index + 1) {
-                $menu['issues'] = $issuesLink;
+            $contentLink = [
+                'name' => __('navigation.content'),
+                'icon' => 'Content',
+                'submenu' => $contentSubmenu
+            ];
+
+            $index = false;
+            $index = array_search('statistics', array_keys($menu));
+            if ($index === false || $index === count($menu) - 1) {
+                $menu['content'] = $contentLink;
             } else {
-                $menu = array_slice($menu, 0, $index + 1, true)
-                    + ['issues' => $issuesLink]
-                    + array_slice($menu, $index + 1, null, true);
+                $menu = array_slice($menu, 0, $index, true) +
+                    ['content' => $contentLink] +
+                    array_slice($menu, $index, null, true);
             }
         }
 
@@ -181,7 +195,7 @@ class TemplateManager extends PKPTemplateManager
             ];
 
             $index = array_search('settings', array_keys($menu));
-            if ($index === false || count($menu) === $index) {
+            if ($index === false || $index === count($menu) - 1) {
                 $menu['payments'] = $paymentsLink;
             } else {
                 $menu = array_slice($menu, 0, $index, true) +
@@ -201,13 +215,6 @@ class TemplateManager extends PKPTemplateManager
                 ['institutions' => $institutionsLink] +
                 array_slice($menu, $paymentsIndex, null, true);
         }
-
-        $this->setConstants([
-            'publication' => [
-                'STATUS_READY_TO_PUBLISH' => Publication::STATUS_READY_TO_PUBLISH,
-                'STATUS_READY_TO_SCHEDULE' => Publication::STATUS_READY_TO_SCHEDULE,
-            ],
-        ]);
 
         $this->setState(['menu' => $menu]);
     }

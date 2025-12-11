@@ -62,6 +62,7 @@
 				"Backend",
 				"ORCID",
 				"Emails",
+				"Edit Task Templates",
 				"Categories",
 				"Comments",
 				"Comments / Reports"
@@ -164,6 +165,10 @@
 		{
 			"name": "Email Templates",
 			"description": "Only admins and journal managers can access these endpoints."
+		},
+		{
+			"name": "Edit Task Templates",
+			"description": "Endpoints used to manage editorial task templates (discussions and tasks)."
 		},
 		{
 			"name": "Institutions",
@@ -378,6 +383,126 @@
 				}
 			}
 		},
+		"EditTaskTemplate": {
+			"type": "object",
+			"required": [
+				"id",
+				"stageId",
+				"title",
+				"include",
+				"type"
+			],
+			"properties": {
+				"id": {
+					"type": "integer",
+					"format": "int64"
+				},
+				"stageId": {
+					"type": "integer"
+				},
+				"title": {
+					"type": "string"
+				},
+				"include": {
+					"type": "boolean"
+				},
+				"emailTemplateKey": {
+					"type": "string"
+				},
+				"type": {
+					"type": "integer",
+					"enum": [
+						1,
+						2
+					],
+					"description": "1 = discussion, 2 = task"
+				},
+				"userGroups": {
+					"type": "array",
+					"items": {
+						"$ref": "#/definitions/UserGroupSummary"
+					}
+				},
+				"restrictToUserGroups": {
+					"type": "boolean",
+					"description": "Whether the task/discussion is restricted to the specified user groups."
+				}
+			},
+			"example": {
+				"id": 1,
+				"stageId": 5,
+				"title": "Copyedit request",
+				"include": true,
+				"emailTemplateKey": "COPYEDIT_REQUEST",
+				"type": 2,
+				"userGroups": []
+			}
+		},
+		"AddTaskTemplateRequest": {
+			"type": "object",
+			"required": [
+				"stageId",
+				"title",
+				"type",
+				"userGroupIds"
+			],
+			"properties": {
+				"stageId": {
+					"type": "integer",
+					"description": "Workflow stage id"
+				},
+				"title": {
+					"type": "string",
+					"maxLength": 255
+				},
+				"include": {
+					"type": "boolean",
+					"default": false
+				},
+				"emailTemplateKey": {
+					"type": "string",
+					"maxLength": 255
+				},
+				"type": {
+					"type": "integer",
+					"enum": [
+						1,
+						2
+					],
+					"description": "1 = discussion, 2 = task"
+				},
+				"userGroupIds": {
+					"type": "array",
+					"items": {
+						"type": "integer"
+					},
+					"minItems": 1
+				},
+				"restrictToUserGroups": {
+					"type": "boolean",
+					"default": false,
+					"description": "Whether the task/discussion is restricted to the specified user groups."
+				}
+			},
+			"example": {
+				"stageId": 5,
+				"title": "Request copyediting",
+				"include": true,
+				"emailTemplateKey": "COPYEDIT_REQUEST",
+				"type": 2,
+				"userGroupIds": [
+					5,
+					7
+				]
+			}
+		},
+		"UserGroupSummary": {
+				"type": "object",
+				"properties": {
+					"id": { "type": "integer" },
+					"name": { "type": "string" }
+				}
+			},
 		"ErrorResponse": {
 			"type": "object",
 			"description": "A response object that will be returned when the request could not be fulfilled.",
@@ -388,6 +513,59 @@
 				"errorMessage": {
 					"type": "string"
 				}
+			}
+		},
+		"UpdateTaskTemplateRequest": {
+			"type": "object",
+			"description": "All properties are optional; only provided fields will be updated.",
+			"properties": {
+				"stageId": {
+					"type": "integer",
+					"description": "Workflow stage id"
+				},
+				"title": {
+					"type": "string",
+					"maxLength": 255
+				},
+				"include": {
+					"type": "boolean"
+				},
+				"emailTemplateKey": {
+					"type": "string",
+					"maxLength": 255
+				},
+				"type": {
+					"type": "integer",
+					"enum": [
+						1,
+						2
+					],
+					"description": "1 = discussion, 2 = task"
+				},
+				"userGroupIds": {
+					"type": "array",
+					"items": {
+						"type": "integer"
+					},
+					"minItems": 1,
+					"description": "If provided, replaces the full set of linked user groups."
+				},
+				"restrictToUserGroups": {
+					"type": "boolean",
+					"default": false,
+					"description": "Whether the task/discussion is restricted to the specified user groups."
+				}
+			},
+			"example": {
+				"stageId": 5,
+				"title": "Copyedit request (updated)",
+				"include": true,
+				"emailTemplateKey": "COPYEDIT_REQUEST",
+				"type": 2,
+				"userGroupIds": [
+					5,
+					7
+				]
 			}
 		},
 		"EmailTemplate": "emailTemplate",
@@ -553,8 +731,11 @@
 				"contents": {
 					"type": "string"
 				},
+				"createdByEmail": {
+					"type": "string"
+				},
 				"createdByName": {
-					"type": "integer"
+					"type": "string"
 				},
 				"createdByUsername": {
 					"type": "string"
@@ -785,6 +966,9 @@
 							},
 							"name": {
 								"type": "string"
+							},
+							"reviewMethod": {
+								"type": "int"
 							}
 						}
 					}
@@ -824,7 +1008,27 @@
 			}
 		},
 		"User": "user",
-		"UserGroup": "userGroup",
+		"UserGroup": {
+			"type": "object",
+			"description": "A group that a user belongs to. Defines a role and an access level",
+			"properties": {
+				"id": {
+					"type": "integer"
+				},
+				"roleId": {
+					"type": "integer"
+				},
+				"isDefault": {
+					"type": "boolean"
+				},
+				"showTitle": {
+					"type": "boolean"
+				},
+				"name": {
+					"type": "string"
+				}
+			}
+		},
 		"UserInterest": {
 			"type": "object",
 			"description": "A user's review interests.",
@@ -841,8 +1045,8 @@
 		"Ror": "Ror",
 		"VersionStage": {
 			"type": "string",
-			"enum": ["AO", "AM", "SM", "PF", "VoR"],
-			"description": "Enum for version stages: AO (Author Original), AM (Accepted Manuscript), SM (Submitted Manuscript), PF (Proof), VoR (Version of Record)"
+			"enum": ["AO", "PMUR", "VoR"],
+			"description": "Enum for version stages: AO (Author Original), PMUR (Published Manuscript Under Review), VoR (Version of Record)"
 		},
 		"PublicationVersionInfo": {
 			"type": "object",
@@ -850,7 +1054,7 @@
 			"properties": {
 				"versionStage": {
 					"type": "string",
-					"description": "The code of the version stage (e.g., AO, AM, SM, PF, VoR)."
+					"description": "The code of the version stage (e.g., AO, PMUR, VoR)."
 				},
 				"versionStageLabelKey": {
 					"type": "string",
@@ -1514,7 +1718,7 @@
 					"name": "versionStage",
 					"in": "query",
 					"type": "string",
-					"enum": ["AO", "AM", "SM", "PF", "VoR"],
+					"enum": ["AO", "PMUR", "VoR"],
 					"description": "Enum representing the version stage"
 				},
 				{
@@ -2319,7 +2523,7 @@
 					"Submissions / Publications"
 				],
 				"summary": "Create a new version of a publication.",
-				"description": "Create a new version of an existing publication. This will clone the current publication and bump its version number. You can optionally specify the `versionStage` (e.g., AO, AM, SM, PF, VoR) and whether this is a minor version update using the `versionIsMinor` boolean flag.",
+				"description": "Create a new version of an existing publication. This will clone the current publication and bump its version number. You can optionally specify the `versionStage` (e.g., AO, PMUR, VoR) and whether this is a minor version update using the `versionIsMinor` boolean flag.",
 				"parameters": [
 					{
 						"name": "submissionId",
@@ -2345,8 +2549,8 @@
 							"properties": {
 							"versionStage": {
 								"type": "string",
-								"enum": ["AO", "AM", "SM", "PF", "VoR"],
-								"description": "Enum representing the version stage: AO (Author Original), AM (Accepted Manuscript), SM (Submitted Manuscript), PF (Proof), VoR (Version of Record)."
+								"enum": ["AO", "PMUR", "VoR"],
+								"description": "Enum representing the version stage: AO (Author Original), PMUR (Published Manuscript Under Review), VoR (Version of Record)."
 							},
 							"versionIsMinor": {
 								"type": "boolean",
@@ -2405,8 +2609,8 @@
 						"properties": {
 							"versionStage": {
 								"type": "string",
-								"enum": ["AO", "AM", "SM", "PF", "VoR"],
-								"description": "Enum representing the version stage: AO (Author Original), AM (Accepted Manuscript), SM (Submitted Manuscript), PF (Proof), VoR (Version of Record)"
+								"enum": ["AO", "PMUR", "VoR"],
+								"description": "Enum representing the version stage: AO (Author Original), PMUR (Published Manuscript Under Review), VoR (Version of Record)"
 							},
 								"versionIsMinor": {
 								"type": "boolean",
@@ -2961,6 +3165,70 @@
 				}
 			}
 		},
+		"/submissions/{submissionId}/stage/{stageId}/tasks/fromTemplate/{templateId}": {
+			"get": {
+				"tags": [
+					"Submissions / Tasks"
+				],
+				"summary": "Get a task created from a specific template" ,
+				"parameters": [
+					{
+						"name": "submissionId",
+						"in": "path",
+						"description": "Submission ID",
+						"required": true,
+						"type": "integer"
+					},
+					{
+						"name": "stageId",
+						"in": "path",
+						"description": "Stage ID",
+						"required": true,
+						"type": "integer"
+					},
+					{
+						"name": "templateId",
+						"in": "path",
+						"description": "Template ID",
+						"required": true,
+						"type": "integer"
+					}
+				],
+				"responses": {
+					"200": {
+						"x-summary": "Success",
+						"description": "A task created from a template",
+						"schema": {
+							"type": "array",
+							"items": {
+								"$ref": "#/definitions/EditorialTask"
+							}
+						}
+					},
+					"401": {
+						"x-summary": "Request Unauthorized",
+						"description": "A workflow stage is invalid",
+						"schema": {
+							"$ref": "#/definitions/ErrorResponse"
+						}
+					},
+					"403": {
+						"x-summary": "Request Unauthorized",
+						"description": "You are not allowed to access the requested submission or stage.",
+						"schema": {
+							"$ref": "#/definitions/ErrorResponse"
+						}
+					},
+					"404": {
+						"x-summary": "Request Not Found",
+						"description": "The requested submission or task template could not be found.",
+						"schema": {
+							"$ref": "#/definitions/ErrorResponse"
+						}
+					}
+				}
+			}
+		},
 		"/submissions/{submissionId}/tasks/": {
 			"post": {
 				"tags": [
@@ -3487,6 +3755,80 @@
 							"$ref": "#/definitions/ErrorResponse"
 						}
 					}
+				}
+			}
+		},
+		"/editTaskTemplates": {
+			"get": {
+				"tags": ["Editorial Task Templates"],
+				"summary": "List task/discussion templates in the current context",
+				"parameters": [
+					{ "name": "search", "in": "query", "type": "string", "description": "Free-text search across title, name/description (settings), and emailTemplateKey" },
+					{ "name": "title", "in": "query", "type": "string", "description": "Filter by title (case-insensitive, partial match)" },
+					{ "name": "type", "in": "query", "type": "integer", "enum": [1, 2], "description": "1 = discussion, 2 = task" },
+					{ "name": "stageId", "in": "query", "type": "integer", "description": "Workflow stage id (eg 1=submission, 3=review, 4=copyediting, 5=production)" },
+					{ "name": "include", "in": "query", "type": "boolean", "description": "Filter by include flag" },
+					{ "name": "emailTemplateKey", "in": "query", "type": "string", "description": "Filter by email template key" },
+					{ "name": "count", "in": "query", "type": "integer", "format": "int32", "description": "Limit number of results" },
+					{ "name": "offset", "in": "query", "type": "integer", "format": "int32", "description": "Offset for pagination" }
+				],
+				"responses": {
+					"200": {
+						"description": "Templates",
+						"schema": {
+						"type": "array",
+						"items": { "$ref": "#/definitions/EditTaskTemplate" }
+						}
+					}
+				}
+			},
+			"post": {
+				"tags": ["Editorial Task Templates"],
+				"summary": "Create a task/discussion template",
+				"parameters": [
+					{
+						"in": "body",
+						"name": "body",
+						"required": true,
+						"schema": { "$ref": "#/definitions/AddTaskTemplateRequest" }
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Created template",
+						"schema": { "$ref": "#/definitions/EditTaskTemplate" }
+					},
+					"422": { "description": "Validation error" }
+				}
+			}
+		},
+		"/editTaskTemplates/{templateId}": {
+			"put": {
+				"tags": ["Editorial Task Templates"],
+				"summary": "Update a task/discussion template",
+				"parameters": [
+				{
+					"name": "templateId",
+					"in": "path",
+					"required": true,
+					"type": "integer",
+					"format": "int64",
+					"description": "Template ID"
+				},
+				{
+					"in": "body",
+					"name": "body",
+					"required": true,
+					"schema": { "$ref": "#/definitions/UpdateTaskTemplateRequest" }
+				}
+				],
+				"responses": {
+				"200": {
+					"description": "Updated template",
+					"schema": { "$ref": "#/definitions/EditTaskTemplate" }
+				},
+				"404": { "description": "Template not found in current context" },
+				"422": { "description": "Validation error" }
 				}
 			}
 		},
@@ -4297,6 +4639,64 @@
 					"403": {
 						"x-summary": "Request Unauthorized",
 						"description": "There are two possible conditions that will result in a `403` response. 1. You do not have permission to edit this context. 2. You submitted changes for one context from the API endpoint of another context. To edit a context, you must make a request to that context's API endpoint or the site-wide API endpoint.",
+						"schema": {
+							"$ref": "#/definitions/ErrorResponse"
+						}
+					},
+					"404": {
+						"x-summary": "Request Not Found",
+						"description": "The requested context could not be found.",
+						"schema": {
+							"$ref": "#/definitions/ErrorResponse"
+						}
+					}
+				}
+			}
+		},
+		"/userGroups": {
+			"get": {
+				"tags": [
+					"User Groups"
+				],
+				"summary": "Get a list of user groups for a context.",
+				"description": "Get a list of user groups for any journal (OJS), press (OMP) or preprint server (OPS).",
+				"parameters": [
+					{
+						"name": "contextId",
+						"description": "Context ID",
+						"in": "path",
+						"required": true,
+						"type": "integer"
+					},
+					{
+						"name": "stageIds",
+						"description": "Filter user groups by stage IDs they have access to.",
+						"in": "query",
+						"required": false,
+						"type": "array"
+					},
+					{
+						"name": "roleIds",
+						"description": "Filter user groups by associated role IDs.",
+						"in": "query",
+						"required": false,
+						"type": "array"
+					}
+				],
+				"responses": {
+					"200": {
+						"x-summary": "Success",
+						"description": "List of user groups.",
+						"schema": {
+							"type": "array",
+							"items": {
+								"$ref": "#/definitions/UserGroup"
+							}
+						}
+					},
+					"403": {
+						"x-summary": "Request Unauthorized",
+						"description": "You do not have permission to view this context.",
 						"schema": {
 							"$ref": "#/definitions/ErrorResponse"
 						}
@@ -8395,6 +8795,42 @@
 						"description": "The journal you requested could not be found.",
 						"schema": {
 							"$ref": "#/definitions/ErrorResponse"
+						}
+					}
+				}
+			}
+		},
+		"/vocabs/interests": {
+			"get": {
+				"tags": [
+					"Vocabs"
+				],
+				"summary": "Get user interests vocabulary.",
+				"description": "Returns a list of all user interests stored site-wide. This endpoint is publicly accessible and does not require authentication. Interests are not multilingual and are shared across the entire application.",
+				"parameters": [
+					{
+						"name": "term",
+						"description": "Optional search term to filter interests by partial name matching.",
+						"in": "query",
+						"required": false,
+						"type": "string"
+					}
+				],
+				"responses": {
+					"200": {
+						"x-summary": "Success",
+						"description": "A list of interest entries.",
+						"schema": {
+							"type": "array",
+							"items": {
+								"type": "object",
+								"properties": {
+									"name": {
+										"type": "string",
+										"description": "The name of the interest"
+									}
+								}
+							}
 						}
 					}
 				}

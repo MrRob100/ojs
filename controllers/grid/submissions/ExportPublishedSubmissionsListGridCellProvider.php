@@ -19,7 +19,6 @@ namespace APP\controllers\grid\submissions;
 use APP\core\Application;
 use APP\facades\Repo;
 use APP\plugins\PubObjectsExportPlugin;
-use APP\submission\Submission;
 use PKP\controllers\grid\DataObjectGridCellProvider;
 use PKP\controllers\grid\GridHandler;
 use PKP\core\PKPApplication;
@@ -63,7 +62,6 @@ class ExportPublishedSubmissionsListGridCellProvider extends DataObjectGridCellP
     {
         $submission = $row->getData();
         $columnId = $column->getId();
-        assert($submission instanceof Submission && !empty($columnId));
 
         switch ($columnId) {
             case 'title':
@@ -110,7 +108,6 @@ class ExportPublishedSubmissionsListGridCellProvider extends DataObjectGridCellP
                 $statusNames = $this->_plugin->getStatusNames();
                 $statusActions = $this->_plugin->getStatusActions($submission);
                 if ($status && array_key_exists($status, $statusActions)) {
-                    assert(array_key_exists($status, $statusNames));
                     return [$statusActions[$status]];
                 }
                 break;
@@ -128,7 +125,6 @@ class ExportPublishedSubmissionsListGridCellProvider extends DataObjectGridCellP
     {
         $submission = $row->getData();
         $columnId = $column->getId();
-        assert($submission instanceof Submission && !empty($columnId));
 
         switch ($columnId) {
             case 'id':
@@ -145,7 +141,6 @@ class ExportPublishedSubmissionsListGridCellProvider extends DataObjectGridCellP
                     if (array_key_exists($status, $statusActions)) {
                         $label = '';
                     } else {
-                        assert(array_key_exists($status, $statusNames));
                         $label = $statusNames[$status];
                     }
                 } else {

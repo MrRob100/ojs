@@ -37,7 +37,7 @@ export default defineConfig(({mode}) => {
 			viteStaticCopy({
 				targets: [
 					{
-						src: 'lib/ui-library/public/styles/tinymce/*',
+						src: 'node_modules/tinymce/skins/ui/tinymce-5/**/*.css',
 						dest: 'lib/pkp/styles/tinymce',
 					},
 					{
@@ -65,6 +65,10 @@ export default defineConfig(({mode}) => {
 				'@': path.resolve(__dirname, 'lib/ui-library/src'),
 				// use vue version with template compiler
 				vue: 'vue/dist/vue.esm-bundler.js',
+				'@sciflow/editor-start/dist/bundle/sciflow-editor.js': path.resolve(
+					__dirname,
+					'node_modules/@sciflow/editor-start/dist/bundle/sciflow-editor.js',
+				),
 			},
 			// https://github.com/vitejs/vite/discussions/15906
 			dedupe: [

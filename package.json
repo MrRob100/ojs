@@ -23,6 +23,8 @@
     "@headlessui/vue": "^1.7.23",
     "@highlightjs/vue-plugin": "^2.1.2",
     "@lk77/vue3-color": "^3.0.6",
+    "@sciflow/editor-core": "^0.0.0-ci.57",
+    "@sciflow/editor-start": "^0.0.0-ci.57",
     "@tinymce/tinymce-vue": "^6.1.0",
     "@vue-a11y/announcer": "^3.1.5",
     "@vueuse/core": "^10.11.1",
@@ -42,7 +44,7 @@
     "ofetch": "^1.4.1",
     "pinia": "^2.3.1",
     "primevue": "^4.3.3",
-    "reka-ui": "^2.3.2",
+    "reka-ui": "2.3.2",
     "swiper": "^10.3.1",
     "tiny-emitter": "^2.1.0",
     "tinymce": "^7.8.0",
@@ -53,7 +55,7 @@
     "vue-scrollto": "^2.20.0"
   },
   "overrides": {
-    "vite": "npm:rolldown-vite@latest"
+    "vite": "npm:rolldown-vite@7.2.6"
   },
   "devDependencies": {
     "@rushstack/eslint-patch": "^1.11.0",
@@ -76,7 +78,7 @@
     "prettier": "^3.5.3",
     "prettier-plugin-tailwindcss": "^0.6.11",
     "tailwindcss": "^3.4.17",
-    "vite": "npm:rolldown-vite@latest",
+    "vite": "npm:rolldown-vite@7.2.6",
     "vite-plugin-static-copy": "^3.1.1"
   },
   "prettier": {

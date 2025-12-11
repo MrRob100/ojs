@@ -122,12 +122,16 @@
 									{/foreach}
 								</span>
 							{/if}
-							{assign var=authorUserGroup value=$userGroupsById[$author->getData('userGroupId')]}
-							{if $authorUserGroup->showTitle}
-								<span class="userGroup">
-									{$authorUserGroup->getLocalizedData('name')|escape}
-								</span>
-							{/if}
+							<span class="contributor_roles">
+								{foreach $author->getLocalizedContributorRoleNames() as $contributorRoleName}
+									{strip}
+									<span class="value">
+										{$contributorRoleName|escape}
+									</span>
+									{if !$contributorRoleName@last}{translate key="common.commaListSeparator"}{/if}
+									{strip}
+								{/foreach}
+							</span>
 							{if $author->getData('orcid')}
 								<span class="orcid">
 									{if $author->hasVerifiedOrcid()}
@@ -275,7 +279,7 @@
 					<div class="value">
 						{if $parsedCitations}
 							{foreach from=$parsedCitations item="parsedCitation"}
-								<p>{$parsedCitation->getCitationWithLinks()|strip_unsafe_html} {call_hook name="Templates::Article::Details::Reference" citation=$parsedCitation}</p>
+								<p>{$parsedCitation->getRawCitationWithLinks()|strip_unsafe_html} {call_hook name="Templates::Article::Details::Reference" citation=$parsedCitation}</p>
 							{/foreach}
 						{else}
 							{$publication->getData('citationsRaw')|escape|nl2br}
@@ -285,7 +289,7 @@
 			{/if}
 
 			{if $enablePublicComments}
-				<section class="item comments" data-vue-root>
+				<section id="public-comments" class="item comments" data-vue-root>
 					<h2 class="label">
 						{translate key="userComment.commentsOnThisPublication"}
 					</h2>

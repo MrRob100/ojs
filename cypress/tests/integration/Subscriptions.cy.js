@@ -40,7 +40,9 @@ describe('Subscription tests', function() {
 		cy.get('#access [role="status"]').contains('Saved');
 
 		// Configure an issue for subscription.
-		cy.get('nav').contains('Issues').click();
+		cy.get('nav').contains('Content').click();
+		// Ensure submenu item click despite animation
+		cy.get('nav').contains('Issues').click({force: true});
 		cy.get('button:contains("Back Issues")').click();
 		cy.get('a:contains("Vol. 1 No. 2 (2014)")').click();
 		cy.get('[role="dialog"] a:contains("Access")').click();
@@ -56,6 +58,7 @@ describe('Subscription tests', function() {
 		cy.get('textarea[id^="subscriptionMailingAddress"]').type('123 456th Street', {delay: 0});
 		cy.get('form#subscriptionPolicies button:contains("Save")').click();
 		cy.get('div:contains("Your changes have been saved.")');
+		cy.logout();
 	});
 
 	it('Checks subscription-based publishing without login', function() {
@@ -75,6 +78,7 @@ describe('Subscription tests', function() {
 		cy.get('a.obj_galley_link').should('have.class', 'restricted');
 		cy.get('a.obj_galley_link:first').click();
 		cy.get('iframe'); // The PDF viewer loads; we can't inspect within it, though.
+		cy.logout();
 	});
 
 	it('Checks unauthorized access to subscription-based content', function() {
@@ -84,6 +88,7 @@ describe('Subscription tests', function() {
 		cy.get('nav').contains('Settings').click();
 		// Ensure submenu item click despite animation
 		cy.get('nav').contains('Users & Roles').click({ force: true });
+		cy.logout();
 		cy.createUserByInvitation({
 			'username': 'reader',
 			'givenName': 'Rea',
@@ -93,8 +98,6 @@ describe('Subscription tests', function() {
 			'roles': ['Reader']
 		});
 
-		cy.logout();
-
 		// See if the newly-subscribed user has a subscription
 		cy.login('reader', null, 'publicknowledge');
 		cy.visit('');
@@ -103,6 +106,7 @@ describe('Subscription tests', function() {
 		cy.get('a.obj_galley_link').should('have.class', 'restricted');
 		cy.get('a.obj_galley_link:first').click();
 		cy.get('h3:contains("Subscriptions Contact")');
+		cy.logout();
 	});
 
 	it('Creates a subscription', function() {
@@ -154,6 +158,7 @@ describe('Subscription tests', function() {
 		cy.get('a.obj_galley_link').should('not.have.class', 'restricted');
 		cy.get('a.obj_galley_link:first').click();
 		cy.get('iframe'); // The PDF viewer loads; we can't inspect within it, though.
+		cy.logout();
 	});
 
 	// Multiple results may be returned for a user search phrase, as the search API searches roles as well.
